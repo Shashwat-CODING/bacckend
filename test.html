@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON URL Replacer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        pre {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        button, a {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload JSON File</h2>
+        <input type="file" id="fileInput" accept="application/json">
+        <button onclick="processFile()">Replace URLs</button>
+        <h3>Original JSON:</h3>
+        <pre id="originalJson" style="display: none;"></pre>
+        <h3>Updated JSON:</h3>
+        <pre id="jsonOutput" style="display: none;"></pre>
+        <button id="copyButton" style="display: none;" onclick="copyToClipboard()">Copy JSON</button>
+        <a id="downloadLink" style="display: none;">Download Modified JSON</a>
+    </div>
+
+    <script>
+        function processFile() {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files.length) {
+                alert('Please select a JSON file first.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                try {
+                    let json = JSON.parse(event.target.result);
+                    let jsonString = JSON.stringify(json, null, 2);
+                    
+                    document.getElementById('originalJson').textContent = jsonString;
+                    document.getElementById('originalJson').style.display = 'block';
+                    
+                    jsonString = jsonString.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/Studyleague01\/amanpar@main/g, 'https://amanp.netlify.app');
+                    
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const downloadLink = document.getElementById('downloadLink');
+                    downloadLink.href = url;
+                    downloadLink.download = 'modified.json';
+                    downloadLink.style.display = 'block';
+                    downloadLink.textContent = 'Download Modified JSON';
+                    
+                    const jsonOutput = document.getElementById('jsonOutput');
+                    jsonOutput.textContent = jsonString;
+                    jsonOutput.style.display = 'block';
+                    
+                    const copyButton = document.getElementById('copyButton');
+                    copyButton.style.display = 'block';
+                } catch (error) {
+                    alert('Invalid JSON file.');
+                }
+            };
+
+            reader.readAsText(file);
+        }
+
+        function copyToClipboard() {
+            const jsonOutput = document.getElementById('jsonOutput');
+            navigator.clipboard.writeText(jsonOutput.textContent).then(() => {
+                alert('JSON copied to clipboard!');
+            }).catch(err => {
+                alert('Failed to copy JSON: ' + err);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast Heaven</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            100: '#2D2D2D',
+                            200: '#1A1A1A',
+                            300: '#121212'
+                        }
+                    },
+                    animation: {
+                        'gradient': 'gradient 8s linear infinite'
+                    },
+                    keyframes: {
+                        gradient: {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-300 text-gray-100 min-h-screen">
+    <!-- Enhanced Header -->
+    <header class="bg-dark-200/50 backdrop-blur-lg text-white sticky top-0 z-40 transition-colors duration-500 border-b border-white/5">
+        <div class="container mx-auto">
+            <!-- Top Bar -->
+            <div class="flex items-center h-16 px-4">
+                <div class="flex items-center flex-shrink-0 mr-8">
+                    <div class="relative group">
+                        <i class="fas fa-podcast text-3xl text-purple-500 group-hover:text-purple-400 transition-colors duration-300"></i>
+                        <div class="absolute -inset-2 bg-purple-500/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    <h1 class="text-2xl font-bold tracking-tight ml-3 hidden md:block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Podcast Heaven</h1>
+                </div>
+                
+                <!-- Enhanced Search Section -->
+                <div class="flex-1 max-w-2xl">
+                    <div class="relative group">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors duration-300"></i>
+                        <input type="text" id="searchInput" placeholder="Search podcasts..." 
+                            class="w-full h-12 pl-12 pr-4 rounded-xl bg-dark-100/50 text-gray-100 placeholder-gray-400 
+                            focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:bg-dark-100/80 
+                            transition-all duration-300 backdrop-blur-sm">
+                        <div class="absolute inset-0 -m-1 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 -z-10"></div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Sort Controls -->
+                <div class="ml-4 flex items-center gap-4">
+                    <select id="sortSelect" 
+                        class="bg-dark-100/50 text-gray-100 rounded-lg px-4 py-2 pr-10 
+                        focus:outline-none focus:ring-2 focus:ring-purple-500/50 
+                        cursor-pointer appearance-none 
+                        backdrop-blur-sm transition-all duration-300
+                        border border-white/10 hover:border-purple-500/30">
+                        <option value="date">Newest First</option>
+                        <option value="views">Most Viewed</option>
+                        <option value="title">Title A-Z</option>
+                    </select>
+                    <div class="absolute right-[5.5rem] pointer-events-none text-gray-400">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Creator Tags Section -->
+            <div class="border-t border-white/5">
+                <div class="px-4 py-3 relative">
+                    <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-dark-200 to-transparent z-10"></div>
+                    <div class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-dark-200 to-transparent z-10"></div>
+                    
+                    <div class="creator-scroll-container">
+                        <div class="flex gap-2 items-center creator-scroll">
+                            <button class="creator-btn active" data-creator="all">
+                                <i class="fas fa-globe-americas"></i>
+                                <span>All Creators</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Enhanced Main Content -->
+    <main class="container mx-auto p-6 mb-24">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" id="podcastGrid">
+            <!-- Podcast cards will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <!-- Enhanced Compact Audio Player -->
+    <div id="audioPlayer" 
+        class="fixed bottom-0 left-0 right-0 bg-dark-200/95 backdrop-blur-lg shadow-lg 
+        transform translate-y-full transition-all duration-500 
+        border-t border-white/10 h-20 cursor-pointer hover:bg-dark-200/98" 
+        onclick="toggleFullscreenPlayer()">
+        <div id="playerBackground" class="absolute inset-0 opacity-30 transition-colors duration-500"></div>
+        <div class="container mx-auto h-full relative z-10">
+            <div class="flex items-center gap-6 h-full px-6">
+                <img id="currentThumbnail" src="" alt="Thumbnail" 
+                    class="w-20 h-12 rounded-lg object-cover shadow-lg">
+                <div class="flex-1 min-w-0">
+                    <h3 id="currentTitle" class="font-medium truncate text-lg"></h3>
+                    <p id="currentCreator" class="text-sm text-gray-400 truncate"></p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="compactPrevBtn" class="p-2 text-gray-400 hover:text-white transition-colors" onclick="event.stopPropagation()">
+                        <i class="fas fa-backward-step"></i>
+                    </button>
+                    <button id="compactPlayPauseBtn" 
+                        class="w-12 h-12 rounded-full bg-purple-500 hover:bg-purple-600 
+                        flex items-center justify-center transform hover:scale-105 
+                        transition-all duration-300 shadow-lg" 
+                        onclick="event.stopPropagation()">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button id="compactNextBtn" class="p-2 text-gray-400 hover:text-white transition-colors" onclick="event.stopPropagation()">
+                        <i class="fas fa-forward-step"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Progress Bar -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-dark-100">
+                <div id="compactProgressBar" class="h-full bg-purple-500 transition-all duration-300"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Player -->
+    <div id="fullscreenPlayer" class="fixed inset-0 bg-dark-300/98 backdrop-blur-xl z-50 transform translate-y-full transition-all duration-500">
+        <div class="container mx-auto h-full flex flex-col p-6">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <button onclick="toggleFullscreenPlayer()" class="p-2 hover:bg-dark-100 rounded-full">
+                    <i class="fas fa-chevron-down text-xl"></i>
+                </button>
+                <h2 class="text-xl font-bold">Now Playing</h2>
+                <button class="p-2 hover:bg-dark-100 rounded-full invisible">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+            </div>
+
+            <!-- Artwork -->
+            <div class="flex-1 flex items-center justify-center mb-8">
+                <div class="relative group w-full max-w-lg aspect-video">
+                    <img id="fullscreenThumbnail" src="" alt="Thumbnail" 
+                        class="w-full h-full rounded-2xl object-cover shadow-2xl">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                </div>
+            </div>
+
+            <!-- Metadata -->
+            <div class="mb-8 text-center">
+                <h3 id="fullscreenTitle" class="text-2xl font-bold mb-2"></h3>
+                <p id="fullscreenCreator" class="text-gray-400"></p>
+                <p id="fullscreenDescription" class="text-sm text-gray-400 mt-2 max-h-12 overflow-hidden relative">
+                    <span class="line-clamp-2"></span>
+                    <span class="absolute right-0 bottom-0 text-purple-400">...</span>
+                </p>
+            </div>
+
+            <!-- Progress -->
+            <div class="mb-12 max-w-3xl mx-auto w-full">
+                <div class="flex items-center gap-4 mb-2">
+                    <span id="currentTime" class="text-sm text-gray-400 w-16 text-right">0:00</span>
+                    <div class="relative flex-1 h-1.5 bg-gray-700/50 rounded-full overflow-hidden group">
+                        <div class="absolute inset-0 bg-gray-700/20 group-hover:bg-gray-700/30 transition-colors cursor-pointer" id="progressBarArea"></div>
+                        <div id="progressBar" class="h-full bg-purple-500 rounded-full relative transition-all duration-200">
+                            <div class="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full scale-0 group-hover:scale-100 transition-transform shadow-lg"></div>
+                        </div>
+                    </div>
+                    <span id="duration" class="text-sm text-gray-400 w-16">0:00</span>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-center gap-3 p-4 mb-12 rounded-lg">
+                <button id="shuffleBtn" aria-label="Shuffle" class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-slate-700 transition">
+                    <i class="fas fa-random"></i>
+                </button>
+                
+                <button id="prevBtn" aria-label="Previous Track" class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-slate-700 transition">
+                    <i class="fas fa-backward-step"></i>
+                </button>
+                
+                <div class="relative">
+                    <button id="rewind15Btn" aria-label="Rewind 15 seconds" class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-slate-700 transition">
+                        <i class="fas fa-rotate-left"></i>
+                        <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs">15</span>
+                    </button>
+                </div>
+                
+                <!-- Updated Play/Pause Button -->
+                <button id="fullscreenPlayPauseBtn" aria-label="Play/Pause" class="w-10 h-10 border-2 border-gray-400 text-gray-400 rounded-full flex items-center justify-center hover:text-white hover:border-white transition">
+                    <i class="fas fa-play"></i> 
+                </button>
+                
+                <div class="relative">
+                    <button id="forward15Btn" aria-label="Forward 15 seconds" class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-slate-700 transition">
+                        <i class="fas fa-rotate-right"></i>
+                        <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs">15</span>
+                    </button>
+                </div>
+                
+                <button id="nextBtn" aria-label="Next Track" class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-slate-700 transition">
+                    <i class="fas fa-forward-step"></i>
+                </button>
+                
+                <button id="repeatBtn" aria-label="Repeat" class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-slate-700 transition">
+                    <i class="fas fa-repeat"></i>
+                </button>
+            </div>
+              
+        </div>
+    </div>
+
+    <style>
+        .creator-scroll-container {
+            position: relative;
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .creator-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .creator-scroll {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+        }
+        
+        .creator-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+        }
+        
+        .creator-btn:hover {
+            background: rgba(168, 85, 247, 0.15);
+            border-color: rgba(168, 85, 247, 0.3);
+            color: rgb(216, 180, 254);
+            transform: translateY(-1px);
+        }
+        
+        .creator-btn.active {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: rgba(168, 85, 247, 0.4);
+            color: rgb(216, 180, 254);
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.15);
+        }
+        
+        .creator-btn i {
+            font-size: 0.875rem;
+        }
+
+        .player-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            color: #9ca3af;
+            transition: all 0.2s ease;
+        }
+
+        .player-btn:hover {
+            color: #f3f4f6;
+            transform: scale(1.1);
+        }
+
+        .player-btn.active {
+            color: #a855f7;
+        }
+
+        @media (max-width: 768px) {
+            .creator-btn {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.813rem;
+            }
+        }
+    </style>
+
+    <script>
+const colorThief = new ColorThief();
+let allPodcasts = [];
+let currentCreator = 'all';
+let playQueue = [];
+let currentIndex = -1;
+let isShuffled = false;
+let repeatMode = 'none';
+
+const creatorEndpoints = {
+    'Alpha akki dark': 'https://raw.githubusercontent.com/Shashwat-CODER-Music/akkidark/refs/heads/main/channel.json',
+    'Sr pay stories': 'https://raw.githubusercontent.com/Studyleague01/srpay/refs/heads/main/channel.json',
+    'Alpha akki': 'https://raw.githubusercontent.com/Shashwat-CODING/akki/refs/heads/main/channel.json',
+    'Shivam is on': 'https://raw.githubusercontent.com/Scodify236/sio/refs/heads/main/channel.json',
+    'Thrill tales': 'https://raw.githubusercontent.com/1fffd/thrilltales/refs/heads/main/channel.json',
+    'Akshay Vasisth': 'https://raw.githubusercontent.com/channelcnt/channel/refs/heads/main/channel.json',
+    'Amaan parkar': 'https://raw.githubusercontent.com/Studyleague01/amanpar/refs/heads/main/channel.json'
+};
+
+// Improved time formatting function
+function formatUploadTime(timestamp) {
+    const uploadDate = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now - uploadDate) / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+    const diffInMonths = Math.floor(diffInDays / 30);
+    
+    if (diffInHours < 24) {
+        return `${diffInHours}h ago`;
+    } else if (diffInDays === 1) {
+        return 'Yesterday';
+    } else if (diffInDays < 30) {
+        return `${diffInDays}d ago`;
+    } else if (diffInMonths === 1) {
+        return '1mo ago';
+    } else if (diffInMonths < 12) {
+        return `${diffInMonths}mo ago`;
+    } else {
+        return uploadDate.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    }
+}
+
+// Enhanced number formatting
+function formatNumber(num) {
+    if (num >= 1000000) {
+        return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+        return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+}
+
+// Improved podcast fetching with loading states
+async function fetchAllPodcasts() {
+    try {
+        const creatorButtons = document.querySelector('.creator-scroll');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'w-full flex items-center justify-center py-12';
+        loadingDiv.innerHTML = `
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            <span class="ml-3 text-lg text-gray-400">Loading podcasts...</span>
+        `;
+        document.getElementById('podcastGrid').innerHTML = '';
+        document.getElementById('podcastGrid').appendChild(loadingDiv);
+        
+        const fetchPromises = Object.entries(creatorEndpoints).map(([creator, endpoint]) => 
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => ({
+                    creator,
+                    data
+                }))
+                .catch(error => {
+                    console.error(`Error fetching ${creator}'s podcasts:`, error);
+                    return null;
+                })
+        );
+        
+        const results = await Promise.all(fetchPromises);
+        allPodcasts = [];
+        
+        results.forEach(result => {
+            if (result && result.data && result.data.videos) {
+                const processedPodcasts = result.data.videos.map(video => ({
+                    ...video,
+                    creator: result.creator,
+                    published: new Date(video.published).getTime(),
+                    searchText: `${video.title} ${video.description} ${result.creator}`.toLowerCase()
+                }));
+                
+                allPodcasts = [...allPodcasts, ...processedPodcasts];
+
+                const btn = document.createElement('button');
+                btn.className = 'creator-btn';
+                btn.innerHTML = `
+                    <i class="fas fa-user-circle"></i>
+                    <span>${result.creator}</span>
+                `;
+                btn.dataset.creator = result.creator;
+                btn.onclick = () => filterByCreator(result.creator);
+                creatorButtons.appendChild(btn);
+            }
+        });
+
+        // Initial sort by date
+        allPodcasts.sort((a, b) => b.published - a.published);
+        renderPodcasts();
+        
+        // Set "All Creators" as active by default
+        document.querySelector('[data-creator="all"]').classList.add('active');
+        
+    } catch (error) {
+        console.error('Error fetching podcasts:', error);
+        document.getElementById('podcastGrid').innerHTML = `
+            <div class="w-full text-center py-8 text-red-500">
+                <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                <p>Failed to load podcasts. Please try again later.</p>
+            </div>
+        `;
+    }
+}
+
+// Enhanced creator filtering
+function filterByCreator(creator) {
+    currentCreator = creator;
+    document.querySelectorAll('.creator-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.creator === creator);
+    });
+    renderPodcasts();
+}
+
+// Improved podcast rendering with enhanced search
+function renderPodcasts() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const sortMethod = document.getElementById('sortSelect').value;
+    const podcastGrid = document.getElementById('podcastGrid');
+    podcastGrid.innerHTML = '';
+    
+    let filteredPodcasts = allPodcasts;
+    
+    // Only filter by creator if not searching
+    if (!searchTerm && currentCreator !== 'all') {
+        filteredPodcasts = allPodcasts.filter(podcast => podcast.creator === currentCreator);
+    }
+    
+    // Enhanced search across all fields
+    if (searchTerm) {
+        filteredPodcasts = allPodcasts.filter(podcast => 
+            podcast.searchText.includes(searchTerm)
+        );
+    }
+
+    // Enhanced sorting
+    switch (sortMethod) {
+        case 'date':
+            filteredPodcasts.sort((a, b) => b.published - a.published);
+            break;
+        case 'views':
+            filteredPodcasts.sort((a, b) => b.viewCount - a.viewCount);
+            break;
+        case 'title':
+            filteredPodcasts.sort((a, b) => a.title.localeCompare(b.title));
+            break;
+    }
+
+    playQueue = filteredPodcasts;
+
+    if (filteredPodcasts.length === 0) {
+        podcastGrid.innerHTML = `
+            <div class="w-full text-center py-12">
+                <i class="fas fa-search text-4xl text-gray-500 mb-4"></i>
+                <p class="text-gray-400">No podcasts found${searchTerm ? ` for "${searchTerm}"` : ''}</p>
+            </div>
+        `;
+        return;
+    }
+
+    filteredPodcasts.forEach((podcast, index) => {
+        const thumbnailUrl = `https://wsrv.nl/?url=https://img.youtube.com/vi/${podcast.videoId}/mqdefault.jpg`;
+        const card = document.createElement('div');
+        card.className = 'podcast-card bg-dark-200 rounded-xl overflow-hidden shadow-lg hover:shadow-purple-500/10 transition-all duration-300 transform hover:-translate-y-1';
+        card.innerHTML = `
+            <div class="relative group cursor-pointer" onclick="playPodcast(${index})">
+                <img src="${thumbnailUrl}" alt="${podcast.title}" 
+                    class="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy" crossorigin="anonymous">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <button class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-purple-500 text-white flex items-center justify-center scale-0 group-hover:scale-100 transition-transform duration-300 hover:bg-purple-600">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4">
+                <h3 class="text-base font-semibold line-clamp-2 mb-2 hover:text-purple-400 transition-colors cursor-pointer"
+                    onclick="playPodcast(${index})">${podcast.title}</h3>
+                <div class="flex flex-wrap gap-2 mb-2">
+                    <div class="flex items-center text-xs text-gray-400">
+                        <i class="fas fa-user-circle mr-1"></i>
+                        <span>${podcast.creator}</span>
+                    </div>
+                    <div class="flex items-center text-xs text-gray-400">
+                        <i class="fas fa-eye mr-1"></i>
+                        <span>${formatNumber(podcast.viewCount)}</span>
+                    </div>
+                    <div class="flex items-center text-xs text-gray-400">
+                        <i class="fas fa-clock mr-1"></i>
+                        <span>${formatUploadTime(podcast.published)}</span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 line-clamp-2">${podcast.description}</p>
+            </div>
+        `;
+        podcastGrid.appendChild(card);
+    });
+}
+
+// Enhanced player functionality
+function playPodcast(index) {
+    if (index < 0 || index >= playQueue.length) return;
+    
+    currentIndex = index;
+    const podcast = playQueue[index];
+    
+    audio.src = podcast.filePath;
+    audio.play().catch(error => {
+        console.error('Playback error:', error);
+        showErrorNotification('Failed to play podcast. Please try again.');
+    });
+
+    const thumbnailUrl = `https://wsrv.nl/?url=https://img.youtube.com/vi/${podcast.videoId}/mqdefault.jpg`;
+    
+    // Update all UI elements
+    document.getElementById('currentThumbnail').src = thumbnailUrl;
+    document.getElementById('fullscreenThumbnail').src = thumbnailUrl;
+    document.getElementById('currentTitle').textContent = podcast.title;
+    document.getElementById('fullscreenTitle').textContent = podcast.title;
+    document.getElementById('fullscreenCreator').textContent = podcast.creator;
+    document.querySelector('#fullscreenDescription .line-clamp-2').textContent = podcast.description;
+    
+    updatePlayButtons(true);
+    document.getElementById('audioPlayer').style.transform = 'translateY(0)';
+    
+    // Update Media Session
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: podcast.title,
+            artist: podcast.creator,
+            artwork: [
+                { src: thumbnailUrl, sizes: '320x180', type: 'image/jpeg' }
+            ]
+        });
+        
+        navigator.mediaSession.setActionHandler('play', () => audio.play());
+        navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+        navigator.mediaSession.setActionHandler('previoustrack', () => playPodcast(currentIndex - 1));
+        navigator.mediaSession.setActionHandler('nexttrack', () => playPodcast(currentIndex + 1));
+    }
+    
+    updatePlayerColors(thumbnailUrl);
+}
+
+// Enhanced color extraction
+async function updatePlayerColors(thumbnailUrl) {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = function() {
+        try {
+            const color = colorThief.getColor(img);
+            const [r, g, b] = color;
+            const rgbaColor = `rgba(${r}, ${g}, ${b}, 0.9)`;
+            const rgbaColorLight = `rgba(${r}, ${g}, ${b}, 0.1)`;
+            
+            document.getElementById('playerBackground').style.backgroundColor = rgbaColor;
+            document.querySelector('header').style.backgroundColor = rgbaColorLight;
+            
+            // Add gradient overlay
+            document.getElementById('playerBackground').style.background = 
+                `linear-gradient(to bottom, ${rgbaColor}, rgba(${r}, ${g}, ${b}, 0.7))`;
+        } catch (error) {
+            console.error('Error extracting color:', error);
+        }
+    };
+    img.src = thumbnailUrl;
+}
+
+// Time formatting utilities
+function formatDuration(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+// Player controls
+function updatePlayButtons(isPlaying) {
+    const icon = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+    document.getElementById('compactPlayPauseBtn').innerHTML = icon;
+    document.getElementById('fullscreenPlayPauseBtn').innerHTML = icon;
+}
+
+function togglePlayPause() {
+    if (audio.paused) {
+        audio.play();
+        updatePlayButtons(true);
+    } else {
+        audio.pause();
+        updatePlayButtons(false);
+    }
+}
+
+// Audio setup
+const audio = new Audio();
+
+// Audio event listeners
+audio.addEventListener('timeupdate', () => {
+    const progress = (audio.currentTime / audio.duration) * 100;
+    document.getElementById('progressBar').style.width = `${progress}%`;
+    document.getElementById('currentTime').textContent = formatDuration(audio.currentTime);
+});
+
+audio.addEventListener('loadedmetadata', () => {
+    document.getElementById('duration').textContent = formatDuration(audio.duration);
+});
+
+audio.addEventListener('ended', () => {
+    if (repeatMode === 'one') {
+        audio.currentTime = 0;
+        audio.play();
+    } else if (repeatMode === 'all' && currentIndex === playQueue.length - 1) {
+        playPodcast(0);
+    } else {
+        playPodcast(currentIndex + 1);
+    }
+});
+
+// Enhanced search with debouncing
+let searchTimeout;
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        currentCreator = 'all'; // Reset creator filter when searching
+        document.querySelectorAll('.creator-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.creator === 'all');
+        });
+        renderPodcasts();
+    }, 300);
+});
+
+// Player controls event listeners
+// Player controls event listeners (continued)
+document.getElementById('compactPlayPauseBtn').onclick = (e) => {
+    e.stopPropagation();
+    togglePlayPause();
+};
+
+document.getElementById('fullscreenPlayPauseBtn').onclick = togglePlayPause;
+
+// Navigation controls
+document.getElementById('prevBtn').onclick = () => {
+    if (currentIndex > 0) {
+        playPodcast(currentIndex - 1);
+    }
+};
+
+document.getElementById('nextBtn').onclick = () => {
+    if (currentIndex < playQueue.length - 1) {
+        playPodcast(currentIndex + 1);
+    }
+};
+
+// Time skip controls
+document.getElementById('rewind15Btn').onclick = () => {
+    audio.currentTime = Math.max(0, audio.currentTime - 15);
+};
+
+document.getElementById('forward15Btn').onclick = () => {
+    audio.currentTime = Math.min(audio.duration, audio.currentTime + 15);
+};
+
+// Shuffle functionality
+document.getElementById('shuffleBtn').onclick = () => {
+    const btn = document.getElementById('shuffleBtn');
+    isShuffled = !isShuffled;
+    btn.classList.toggle('active', isShuffled);
+    
+    if (isShuffled) {
+        // Create shuffled queue while maintaining current track at current position
+        const currentTrack = playQueue[currentIndex];
+        const remainingTracks = playQueue.slice(0, currentIndex).concat(playQueue.slice(currentIndex + 1));
+        for (let i = remainingTracks.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [remainingTracks[i], remainingTracks[j]] = [remainingTracks[j], remainingTracks[i]];
+        }
+        playQueue = remainingTracks;
+        if (currentIndex !== -1) {
+            playQueue.splice(currentIndex, 0, currentTrack);
+        }
+    } else {
+        // Restore original order
+        playQueue = [...allPodcasts];
+        renderPodcasts();
+    }
+};
+
+// Repeat functionality
+document.getElementById('repeatBtn').onclick = () => {
+    const btn = document.getElementById('repeatBtn');
+    switch (repeatMode) {
+        case 'none':
+            repeatMode = 'all';
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-repeat"></i>';
+            break;
+        case 'all':
+            repeatMode = 'one';
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-repeat-1"></i>';
+            break;
+        case 'one':
+            repeatMode = 'none';
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="fas fa-repeat"></i>';
+            break;
+    }
+};
+
+// Progress bar interaction
+document.getElementById('progressBarArea').onclick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = pos * audio.duration;
+};
+
+// Volume control
+const volumeSlider = document.getElementById('volumeSlider');
+if (volumeSlider) {
+    volumeSlider.addEventListener('input', (e) => {
+        const volume = e.target.value / 100;
+        audio.volume = volume;
+        updateVolumeIcon(volume);
+    });
+}
+
+function updateVolumeIcon(volume) {
+    const volumeIcon = document.getElementById('volumeIcon');
+    if (volumeIcon) {
+        if (volume === 0) {
+            volumeIcon.className = 'fas fa-volume-mute';
+        } else if (volume < 0.5) {
+            volumeIcon.className = 'fas fa-volume-down';
+        } else {
+            volumeIcon.className = 'fas fa-volume-up';
+        }
+    }
+}
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target === document.body) {
+        e.preventDefault();
+        togglePlayPause();
+    } else if (e.code === 'ArrowLeft' && e.altKey) {
+        e.preventDefault();
+        document.getElementById('prevBtn').click();
+    } else if (e.code === 'ArrowRight' && e.altKey) {
+        e.preventDefault();
+        document.getElementById('nextBtn').click();
+    } else if (e.code === 'Escape') {
+        const fullscreenPlayer = document.getElementById('fullscreenPlayer');
+        if (fullscreenPlayer.style.transform === 'translateY(0px)') {
+            toggleFullscreenPlayer();
+        }
+    }
+});
+
+// Enhanced fullscreen player toggle
+function toggleFullscreenPlayer() {
+    const player = document.getElementById('fullscreenPlayer');
+    const currentState = player.style.transform;
+    
+    if (currentState === 'translateY(0px)') {
+        player.style.transform = 'translateY(100%)';
+        document.body.style.overflow = 'auto';
+    } else {
+        player.style.transform = 'translateY(0)';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Error notification
+function showErrorNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-20 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-full opacity-0 transition-all duration-300';
+    notification.innerHTML = `
+        <div class="flex items-center gap-2">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateY(0)';
+        notification.style.opacity = '1';
+    }, 100);
+    
+    // Animate out and remove
+    setTimeout(() => {
+        notification.style.transform = 'translateY(full)';
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Sort handler
+document.getElementById('sortSelect').addEventListener('change', renderPodcasts);
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    fetchAllPodcasts();
+    
+    // Initialize volume
+    if (volumeSlider) {
+        volumeSlider.value = 100;
+        audio.volume = 1;
+    }
+    
+    // Set initial states for player controls
+    updatePlayButtons(false);
+    document.getElementById('shuffleBtn').classList.toggle('active', isShuffled);
+    const repeatBtn = document.getElementById('repeatBtn');
+    repeatBtn.classList.toggle('active', repeatMode !== 'none');
+    if (repeatMode === 'one') {
+        repeatBtn.innerHTML = '<i class="fas fa-repeat-1"></i>';
+    }
+});
+    </script>
+</body>
+</html>
