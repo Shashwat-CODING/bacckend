@@ -2,7 +2,7 @@
   "name": "youtube-search-api",
   "version": "1.0.0",
   "description": "YouTube search API with channel filtering",
-  "main": "api/index.js",
+  "main": "i.js",
   "scripts": {
     "start": "node i.js",
   },
